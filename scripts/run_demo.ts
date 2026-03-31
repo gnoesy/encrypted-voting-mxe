@@ -15,6 +15,7 @@ import {
   getArciumEnv,
   getCompDefAccOffset,
   RescueCipher,
+  deserializeLE,
   getMXEPublicKey,
   getMXEAccAddress,
   getMempoolAccAddress,
@@ -29,6 +30,24 @@ const PROGRAM_ID = new PublicKey("FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF")
 
 function log(event: string, data: Record<string, unknown> = {}) {
   console.log(JSON.stringify({ event, ...data, ts: new Date().toISOString() }));
+}
+
+async function getMxePublicKeyWithRetry(
+  provider: anchor.AnchorProvider,
+  programId: PublicKey,
+  retries = 5,
+  delayMs = 1000,
+): Promise<Uint8Array> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const key = await getMXEPublicKey(provider, programId);
+    if (key) {
+      return key;
+    }
+    if (attempt < retries) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw new Error(`MXE public key unavailable for program ${programId.toString()}`);
 }
 
 async function main() {
@@ -57,9 +76,9 @@ async function main() {
     description: "Sealed-bid auction — encrypted bids aggregated in MXE without revealing individual values",
   });
 
-  const privKey = x25519.utils.randomPrivateKey();
+  const privKey = x25519.utils.randomSecretKey();
   const pubKey = x25519.getPublicKey(privKey);
-  const mxePubKey = await getMXEPublicKey(conn, arciumEnv.arciumClusterOffset);
+  const mxePubKey = await getMxePublicKeyWithRetry(provider, PROGRAM_ID);
 
   // Two sealed bids
   const bid1 = Math.floor(Math.random() * 100) + 50;  // 50-150
@@ -70,23 +89,22 @@ async function main() {
     note: "Actual values hidden until MXE reveals winner",
   });
 
-  const nonce = BigInt("0x" + randomBytes(16).toString("hex"));
+  const nonce = randomBytes(16);
   const sharedSecret = x25519.getSharedSecret(privKey, mxePubKey);
   const cipher = new RescueCipher(sharedSecret);
-  const enc_bid1 = cipher.encrypt([BigInt(bid1)], nonce);
-  const enc_bid2 = cipher.encrypt([BigInt(bid2)], nonce + 1n);
+  const ciphertext = cipher.encrypt([BigInt(bid1), BigInt(bid2)], nonce);
 
-  const computationOffset = BigInt("0x" + randomBytes(8).toString("hex"));
+  const computationOffset = new anchor.BN(randomBytes(8), "hex");
   const clusterOffset = arciumEnv.arciumClusterOffset;
 
   try {
     const sig = await program.methods
       .addTogether(
         computationOffset,
-        Array.from(enc_bid1[0]),
-        Array.from(enc_bid2[0]),
+        Array.from(ciphertext[0]),
+        Array.from(ciphertext[1]),
         Array.from(pubKey),
-        nonce
+        new anchor.BN(deserializeLE(nonce).toString())
       )
       .accountsPartial({
         payer: owner.publicKey,
