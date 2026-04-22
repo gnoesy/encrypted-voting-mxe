@@ -98,6 +98,14 @@ encrypted-voting-mxe/
 
 ---
 
+## Evidence Policy
+
+Runtime proof artifacts under `evidence/` stay local by default and are excluded from git. That keeps cluster outputs, traces, and other run-specific proof data out of the repo unless you intentionally export them elsewhere.
+
+If you want something safe to publish, use a sanitized summary instead: the run date, cluster/offset, program ID, a short description of the computation, and redacted success/failure notes or hashes that do not expose raw proofs or secret inputs.
+
+---
+
 ## Related MXE Programs
 
 | Program                                                                    | Program ID                                     |
