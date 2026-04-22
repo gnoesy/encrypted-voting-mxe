@@ -6,13 +6,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-encrypted_voting = "FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF"
+encrypted_voting = "GQZv1j3V2sHsZsipyiN9yf6iVYKbBYQLfsWAo87ggVrj"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "https://solana-devnet.g.alchemy.com/v2/6ouh16g9dAKRpOJQcXKn9"
 wallet = "~/.config/solana/devnet.json"
 
 [scripts]

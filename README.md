@@ -2,7 +2,7 @@
 
 > Sealed bids submitted as ciphertexts, aggregated inside Arcium MXE. No participant sees another's bid until the MXE reveals the outcome.
 
-[![Solana Devnet](https://img.shields.io/badge/Solana-devnet-9945FF)](https://explorer.solana.com/address/FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF?cluster=devnet)
+[![Solana Devnet](https://img.shields.io/badge/Solana-devnet-9945FF)](https://explorer.solana.com/address/GQZv1j3V2sHsZsipyiN9yf6iVYKbBYQLfsWAo87ggVrj?cluster=devnet)
 [![Arcium MXE](https://img.shields.io/badge/Arcium-MXE%20cluster%20456-00D4FF)](https://arcium.com)
 [![Anchor](https://img.shields.io/badge/Anchor-0.32.1-orange)](https://anchor-lang.com)
 [![arcium-client](https://img.shields.io/badge/arcium--client-0.9.3-blue)](https://www.npmjs.com/package/@arcium-hq/client)
@@ -11,10 +11,20 @@
 
 ## Deployed Program
 
-| Network | Program ID |
-|---|---|
-| **Solana Devnet** | [`FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF`](https://explorer.solana.com/address/FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF?cluster=devnet) |
-| MXE Cluster | offset `456` (Arcium devnet) |
+| Network           | Program ID                                                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Solana Devnet** | [`GQZv1j3V2sHsZsipyiN9yf6iVYKbBYQLfsWAo87ggVrj`](https://explorer.solana.com/address/GQZv1j3V2sHsZsipyiN9yf6iVYKbBYQLfsWAo87ggVrj?cluster=devnet) |
+| MXE Cluster       | offset `456` (Arcium devnet)                                                                                                                      |
+
+---
+
+## Legacy Continuity
+
+This repo originally operated against a legacy devnet MXE path on cluster `69420`:
+
+- legacy program id: `FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF`
+
+That legacy MXE entered a stuck keygen state. To preserve the use case and restore live devnet execution, the project was freshly cut over onto the canonical devnet cluster `456` with a new active program id. The legacy id is preserved in docs and evidence as a continuity reference rather than deleted history.
 
 ---
 
@@ -27,7 +37,7 @@ Bidder A: encrypt(bid_a) — sealed, MXE pubkey only
 Bidder B: encrypt(bid_b) — sealed, MXE pubkey only
         │
         ▼
-Solana: add_together instruction
+Solana: aggregate_bids_v2 instruction
         │  encrypted bids queued for cluster 456
         ▼
 Arcium MXE
@@ -53,6 +63,7 @@ npx ts-node --transpile-only scripts/run_demo.ts
 ```
 
 Expected output:
+
 ```json
 {"event":"demo_start","description":"Sealed-bid auction — encrypted bids aggregated in MXE"}
 {"event":"bids_sealed","bid1":"encrypted","bid2":"encrypted"}
@@ -63,11 +74,11 @@ Expected output:
 
 ## On-chain Instructions
 
-| Instruction | Description |
-|---|---|
-| `init_add_together_comp_def` | Register computation definition (run once) |
-| `add_together` | Queue sealed-bid computation with two ciphertexts |
-| `add_together_callback` | MXE callback — emits encrypted aggregate result |
+| Instruction                       | Description                                               |
+| --------------------------------- | --------------------------------------------------------- |
+| `init_aggregate_bids_v2_comp_def` | Register the fresh computation definition path (run once) |
+| `aggregate_bids_v2`               | Queue sealed-bid computation with two ciphertexts         |
+| `aggregate_bids_v2_callback`      | MXE callback — emits encrypted aggregate result           |
 
 ---
 
@@ -80,7 +91,7 @@ encrypted-voting-mxe/
 ├── scripts/
 │   └── run_demo.ts                       # Demo: submit sealed bids
 ├── build/
-│   └── add_together.arcis                # Compiled ARCIS circuit
+│   └── aggregate_bids_v2.arcis           # Compiled ARCIS circuit
 ├── Anchor.toml
 └── Arcium.toml                           # cluster offset: 456
 ```
@@ -89,16 +100,17 @@ encrypted-voting-mxe/
 
 ## Related MXE Programs
 
-| Program | Program ID |
-|---|---|
-| [hello-world-mxe](https://github.com/gnoesy/hello-world-mxe) | `3TysCyYXyWpqNXDnQiwA4C2KiMSxGmBbTJADtGwFVeLr` |
-| [encrypted-defi-mxe](https://github.com/gnoesy/encrypted-defi-mxe) | `AmzMmGcKUqMWf57WPXhHBkE9QzrbXCc1emFK6hsVJTj7` |
-| [private-voting-mxe](https://github.com/gnoesy/private-voting-mxe) | `S43YKqU6x229PdY5oUssPoD2UgH4EDUvugYos6WxvDY` |
-| [encrypted-identity-mxe](https://github.com/gnoesy/encrypted-identity-mxe) | `3zYA4ykzGofqeH6m6aET46AQNgBVtEa2XotAVX6TXgBV` |
+| Program                                                                    | Program ID                                     |
+| -------------------------------------------------------------------------- | ---------------------------------------------- |
+| [hello-world-mxe](https://github.com/gnoesy/hello-world-mxe)               | `3TysCyYXyWpqNXDnQiwA4C2KiMSxGmBbTJADtGwFVeLr` |
+| [encrypted-defi-mxe](https://github.com/gnoesy/encrypted-defi-mxe)         | `AmzMmGcKUqMWf57WPXhHBkE9QzrbXCc1emFK6hsVJTj7` |
+| [private-voting-mxe](https://github.com/gnoesy/private-voting-mxe)         | `S43YKqU6x229PdY5oUssPoD2UgH4EDUvugYos6WxvDY`  |
+| [encrypted-identity-mxe](https://github.com/gnoesy/encrypted-identity-mxe) | `WAV5kgMtb2DZtsC5xmdZVLtzzu9yJSJjW95EXeSMq97`  |
 
 ---
 
 ## Devnet Explorer
 
-- [Program](https://explorer.solana.com/address/FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF?cluster=devnet)
+- [Program](https://explorer.solana.com/address/GQZv1j3V2sHsZsipyiN9yf6iVYKbBYQLfsWAo87ggVrj?cluster=devnet)
 - [Deployer](https://explorer.solana.com/address/4Y8R73V9QpmL2oUtS4LrwdZk3LrPRCLp7KGg2npPkB1u?cluster=devnet)
+- [Legacy Program (69420 path)](https://explorer.solana.com/address/FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF?cluster=devnet)

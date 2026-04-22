@@ -1,21 +1,23 @@
 use anchor_lang::prelude::*;
 use arcium_anchor::prelude::*;
 
-const COMP_DEF_OFFSET_ADD_TOGETHER: u32 = comp_def_offset("add_together");
+const COMP_DEF_OFFSET_AGGREGATE_BIDS_V2: u32 = comp_def_offset("aggregate_bids_v2");
 
-declare_id!("FoCgMmXj37JaMcbYrAnBDCWaaQE6FYzEBzMuAkXBZ7XF");
+declare_id!("GQZv1j3V2sHsZsipyiN9yf6iVYKbBYQLfsWAo87ggVrj");
 
 #[arcium_program]
 pub mod encrypted_voting {
     use super::*;
 
-    pub fn init_add_together_comp_def(ctx: Context<InitAddTogetherCompDef>) -> Result<()> {
+    pub fn init_aggregate_bids_v2_comp_def(
+        ctx: Context<InitAggregateBidsV2CompDef>,
+    ) -> Result<()> {
         init_comp_def(ctx.accounts, None, None)?;
         Ok(())
     }
 
-    pub fn add_together(
-        ctx: Context<AddTogether>,
+    pub fn aggregate_bids_v2(
+        ctx: Context<AggregateBidsV2>,
         computation_offset: u64,
         ciphertext_0: [u8; 32],
         ciphertext_1: [u8; 32],
@@ -34,7 +36,7 @@ pub mod encrypted_voting {
             ctx.accounts,
             computation_offset,
             args,
-            vec![AddTogetherCallback::callback_ix(
+            vec![AggregateBidsV2Callback::callback_ix(
                 computation_offset,
                 &ctx.accounts.mxe_account,
                 &[]
@@ -45,13 +47,13 @@ pub mod encrypted_voting {
         Ok(())
     }
 
-    #[arcium_callback(encrypted_ix = "add_together")]
-    pub fn add_together_callback(
-        ctx: Context<AddTogetherCallback>,
-        output: SignedComputationOutputs<AddTogetherOutput>,
+    #[arcium_callback(encrypted_ix = "aggregate_bids_v2")]
+    pub fn aggregate_bids_v2_callback(
+        ctx: Context<AggregateBidsV2Callback>,
+        output: SignedComputationOutputs<AggregateBidsV2Output>,
     ) -> Result<()> {
         let o = match output.verify_output(&ctx.accounts.cluster_account, &ctx.accounts.computation_account) {
-            Ok(AddTogetherOutput { field_0 }) => field_0,
+            Ok(AggregateBidsV2Output { field_0 }) => field_0,
             Err(_) => return Err(ErrorCode::AbortedComputation.into()),
         };
 
@@ -63,10 +65,10 @@ pub mod encrypted_voting {
     }
 }
 
-#[queue_computation_accounts("add_together", payer)]
+#[queue_computation_accounts("aggregate_bids_v2", payer)]
 #[derive(Accounts)]
 #[instruction(computation_offset: u64)]
-pub struct AddTogether<'info> {
+pub struct AggregateBidsV2<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
@@ -101,7 +103,7 @@ pub struct AddTogether<'info> {
     /// CHECK: computation_account, checked by the arcium program.
     pub computation_account: UncheckedAccount<'info>,
     #[account(
-        address = derive_comp_def_pda!(COMP_DEF_OFFSET_ADD_TOGETHER)
+        address = derive_comp_def_pda!(COMP_DEF_OFFSET_AGGREGATE_BIDS_V2)
     )]
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
     #[account(
@@ -123,12 +125,12 @@ pub struct AddTogether<'info> {
     pub arcium_program: Program<'info, Arcium>,
 }
 
-#[callback_accounts("add_together")]
+#[callback_accounts("aggregate_bids_v2")]
 #[derive(Accounts)]
-pub struct AddTogetherCallback<'info> {
+pub struct AggregateBidsV2Callback<'info> {
     pub arcium_program: Program<'info, Arcium>,
     #[account(
-        address = derive_comp_def_pda!(COMP_DEF_OFFSET_ADD_TOGETHER)
+        address = derive_comp_def_pda!(COMP_DEF_OFFSET_AGGREGATE_BIDS_V2)
     )]
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
     #[account(
@@ -146,9 +148,9 @@ pub struct AddTogetherCallback<'info> {
     pub instructions_sysvar: AccountInfo<'info>,
 }
 
-#[init_computation_definition_accounts("add_together", payer)]
+#[init_computation_definition_accounts("aggregate_bids_v2", payer)]
 #[derive(Accounts)]
-pub struct InitAddTogetherCompDef<'info> {
+pub struct InitAggregateBidsV2CompDef<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(

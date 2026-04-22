@@ -19,7 +19,7 @@ backends = ["Cerberus"]
 # Example usage: arcium test --cluster devnet
 #
 [clusters.devnet]
-offset = 1234
+offset = 456
 #
 # [clusters.mainnet]
-offset = 1234
+offset = 456
